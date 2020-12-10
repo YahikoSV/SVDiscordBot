@@ -63,7 +63,7 @@ async def change_status():
 async def on_member_join(member):
     await member.create_dm()
     await member.dm_channel.send(
-        f'Hi {member.name}, welcome to the Discord server FAQ!'
+        f'Hi {member.name}, welcome to the Discord server! FAQ!'
     )
 
 @bot.command(name='Fubuki_is_Cat', help='Responds with a random quote from Fubuki')
