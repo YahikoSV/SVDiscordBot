@@ -3,3 +3,6 @@
 
 #Others
 .vscode/
+.replit
+poetry.lock
+pyproject.toml

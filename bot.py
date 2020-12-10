@@ -14,7 +14,6 @@ from discord.ext import tasks, commands
 from itertools import cycle
 from dotenv import load_dotenv
 
-
 import nest_asyncio
 nest_asyncio.apply()
 
@@ -23,18 +22,21 @@ from threading import Thread
 
 app = Flask('')
 
+
 @app.route('/')
 def main():
-  return "Your Bot Is Ready"
+    return "Your Bot Is Ready"
+
 
 def run():
-  app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8000)
+
 
 def keep_alive():
-  server = Thread(target=run)
-  server.start()
-  
-  
+    server = Thread(target=run)
+    server.start()
+
+
 # load_dotenv()
 # TOKEN = os.getenv('DISCORD_TOKEN')
 
@@ -74,7 +76,7 @@ client = discord.Client(intents=intents)
 #     await member.dm_channel.send(
 #         f'Hi {member.name}, welcome to my Discord server!'
 #     )
-    
+
 # @client.event
 # async def on_message(message):
 #     if message.author == client.user:
@@ -91,7 +93,7 @@ client = discord.Client(intents=intents)
 #     if message.content == 'Cat':
 #         response = random.choice(brooklyn_99_quotes)
 #         await message.channel.send(response)
-        
+
 # @client.event
 # async def on_error(event, *args, **kwargs):
 #     with open('err.log', 'a') as f:
@@ -105,28 +107,30 @@ client = discord.Client(intents=intents)
 # 1
 
 # 2
-bot = commands.Bot(command_prefix='!faq ',  case_insensitive=True)
-status = cycle(['with Python','JetHub'])
+bot = commands.Bot(command_prefix='!faq ', case_insensitive=True)
+status = cycle(['with Python', 'JetHub'])
+
 
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
 
+
 @tasks.loop(seconds=10)
 async def change_status():
-  await bot.change_presence(activity=discord.Game(next(status)))
+    await bot.change_presence(activity=discord.Game(next(status)))
 
-@bot.command(name='cat', help='Responds with a random quote from Fubuki')
+
+@bot.command(name='Fubuki_is_Cat', help='Responds with a random quote from Fubuki')
 async def nine_nine(ctx):
     brooklyn_99_quotes = [
-        'I\'m the human form of the 💯 emoji.',
-        'I\'m a Fox!',
-        'I\'m a Catto!'
+        'No not cat! I\'m Fox', 'Kitsune jyaa!'
     ]
 
     response = random.choice(brooklyn_99_quotes)
     await ctx.send(response)
-    
+
+
 @bot.command(name='roll', help='Simulates rolling dice.')
 async def roll(ctx, number_of_dice: int, number_of_sides: int):
     dice = [
@@ -134,7 +138,8 @@ async def roll(ctx, number_of_dice: int, number_of_sides: int):
         for _ in range(number_of_dice)
     ]
     await ctx.send(', '.join(dice))
-    
+
+
 @bot.command(name='create-channel')
 @commands.has_role('admin')
 async def create_channel(ctx, channel_name):
@@ -144,11 +149,11 @@ async def create_channel(ctx, channel_name):
         print(f'Creating a new channel: {channel_name}')
         await guild.create_text_channel(channel_name)
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
         await ctx.send('You do not have the correct role for this command.')
 
+
 bot.run(TOKEN)
-
-
