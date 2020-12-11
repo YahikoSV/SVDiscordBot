@@ -1,4 +1,0 @@
-discord.py
-python-dotenv
-nest_asyncio
-Flask
