@@ -75,8 +75,7 @@ async def Fubuki_Cat(ctx):
     await ctx.send(response)
     
 @bot.command(name='deckcode', help='Returns SV Portal link from deckcode')
-async def svdeckcode(ctx, code, mode='R', lang='en'):
-    deck_code = code
+async def svcodetostatic(ctx, deck_code, mode='u', lang='en'):
     deck_code_url = "https://shadowverse-portal.com/api/v1/deck/import?format=json&deck_code=" + deck_code + "&lang=en"
     sv_format = {'R':'3', 'U':'1'}
     languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']
@@ -95,6 +94,24 @@ async def svdeckcode(ctx, code, mode='R', lang='en'):
         deck_hash = deck_json['data']['hash']
         deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
         
+        deck_list_url = "https://shadowverse-portal.com/deck/" + str(deck_hash) + "?lang=" + str(lang)
+        response = deck_list_url
+    await ctx.send(response)
+    
+@bot.command(name='buildertostatic', help='Turns SV builder links into static links')
+async def svbuildtostatic(ctx, link, mode='u', lang='en'):
+    sv_format = {'R':'3', 'U':'1'}
+    languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']            
+
+    if 'shadowverse-portal.com/deckbuilder/create/' not in link:
+        response = "Invalid link"
+    elif mode.upper() not in sv_format:
+        response = "Invalid deck format"
+    elif lang.lower() not in languages:
+        response = "Invalid language"
+    else:      
+        deck_hash = link.split("hash=")[1].split("&")[0]
+        deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
         deck_list_url = "https://shadowverse-portal.com/deck/" + str(deck_hash) + "?lang=" + str(lang)
         response = deck_list_url
     await ctx.send(response)
