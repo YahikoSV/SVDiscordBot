@@ -5,3 +5,4 @@ Flask
 requests
 bs4
 asyncio
+lxml
