@@ -2,3 +2,7 @@ discord.py
 python-dotenv
 nest_asyncio
 Flask
+requests
+bs4
+itertools
+asyncio
