@@ -106,24 +106,37 @@ async def openingmull(ctx, deck_code, lang='en', mode='u'):
     card_list = decklist(link)
        
     draw_count = 3
-    opening_hand = rand.sample(card_list,draw_count)
-    description = f' 1. {opening_hand[0]}\n 2. {opening_hand[1]}\n 3. {opening_hand[2]}'
-    response = discord.Embed(title="Opening_Hand", description = description, color=0xffb7c5)
-    response.set_footer(text='Type card nos. to mull. (Type n if keep hand): ')
-    await ctx.send(embed=response)
     
-    def check(msg):
-        return msg.author == ctx.author and msg.channel == ctx.channel
-    try:
-        msg = await bot.wait_for("message", check=check, timeout=10)
-        opening_hand = mulliganfunction(msg.content, card_list, opening_hand)
-    except asyncio.TimeoutError:
-        await ctx.send("FAQ U!")
-    
-    description = f' 1. {opening_hand[0]}\n 2. {opening_hand[1]}\n 3. {opening_hand[2]}'
-    response = discord.Embed(title="Final_Hand", description = description, color=0xffb7c5)
-    response.set_footer(text='Try Again. (Type y if yes): ')
-    await ctx.send(embed=response)
+    while True:
+        opening_hand = rand.sample(card_list,draw_count)
+        description = f' 1. {opening_hand[0]}\n 2. {opening_hand[1]}\n 3. {opening_hand[2]}'
+        response = discord.Embed(title="Opening_Hand", description = description, color=0xffb7c5)
+        response.set_footer(text='Type card nos. to mull. (Type n if keep hand): ')
+        await ctx.send(embed=response)
+        
+        def check(msg):
+            return msg.author == ctx.author and msg.channel == ctx.channel
+        try:
+            msg = await bot.wait_for("message", check=check, timeout=20)
+            opening_hand = mulliganfunction(msg.content, card_list, opening_hand)
+        except asyncio.TimeoutError:
+            await ctx.send("Time's yp! FAQ! (Mulligan Ended)")
+        
+        description = f' 1. {opening_hand[0]}\n 2. {opening_hand[1]}\n 3. {opening_hand[2]}'
+        response = discord.Embed(title="Final_Hand", description = description, color=0xffb7c5)
+        response.set_footer(text='Try Again. (Type y if yes): ')
+        await ctx.send(embed=response)
+        
+        try:
+            msg = await bot.wait_for("message", check=check, timeout=10)
+            if msg.content.lower() == "y":
+                continue
+            else:
+                await ctx.send("Mulligan Ended")
+                break
+        except asyncio.TimeoutError:
+            await ctx.send("Time's up! FAQ! (Mulligan Ended)")
+            break
 
 
 #################### Functions ######################
