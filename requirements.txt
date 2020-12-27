@@ -4,5 +4,4 @@ nest_asyncio
 Flask
 requests
 bs4
-itertools
 asyncio
