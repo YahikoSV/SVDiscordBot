@@ -6,3 +6,4 @@
 .replit
 poetry.lock
 pyproject.toml
+test.py
