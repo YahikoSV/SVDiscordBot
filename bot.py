@@ -145,7 +145,7 @@ async def openingmull(ctx, deck_code, lang='en', mode='u'):
                 description = f' {opening_hand[0]}\n \
                                  {opening_hand[1]}\n \
                                  {opening_hand[2]}'
-                embed_response = discord.Embed(title="Final Hand", description = description, color=0xffb7c5)
+                embed_response = discord.Embed(title="Final Hand", description = description, color=0x92ddf7)
                 embed_response.set_footer(text='Try Again? (Enter y if yes): ')
                 await ctx.send(embed=embed_response)
                 
@@ -159,6 +159,57 @@ async def openingmull(ctx, deck_code, lang='en', mode='u'):
                 except asyncio.TimeoutError:
                     await ctx.send(f"**{author}**, Time's up! FAQ! (Mulligan Ended)")
                     break
+
+bot.remove_command('help')            
+@bot.command(name='help')
+async def help(ctx):
+    
+    author = ctx.message.author
+    
+    embed1 = discord.Embed(color = discord.Color.orange())
+    embed1.set_author(name='SV FAQ Bot Commands \n')
+    embed1.add_field(name="__dctdl <deck_code> <language> <mode>__",
+                    value="Transforms deck code into SV Portal link. \n\n \
+                    Inputs: \n \
+                    deck_code: 4 character deck_code \n \
+                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
+                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n",
+                    inline=False
+                    )
+        
+    embed1.add_field(name="__dbtdl <builder_link> <language> <mode>__",
+                    value="Transforms deck builder link into SV Portal link. \n\n \
+                    Inputs: \n \
+                    builder_link: Deck builder link from SV Portal \n \
+                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
+                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n",
+                    inline=False
+                    )
+        
+    embed1.add_field(name="__mull <builder_link> <language> <mode>__",
+                    value="Simulates Mulligan with the given deck code. \n\n \
+                    Inputs: \n \
+                    deck_code: 4 character deck_code \n \
+                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
+                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n \
+                    Choose which cards you want to mull based on their positions with...\n \
+                    x: Mull card, o: Keep card (e.g. xxo, oxo) \n\n",
+                    inline=False
+                    )    
+    
+    embed2 = discord.Embed(color = discord.Color.blue())
+    embed2.set_author(name='Other Commands (for testing) \n')
+    embed2.add_field(name="__Fubuki_Cat__",
+                    value="Responses with a random quote of what Fubuki would say \n \
+                          Try out what quote you got hehehe",
+                    inline=False
+                    )
+    
+    
+        
+    
+    await author.send(embed=embed1)
+    await author.send(embed=embed2)
 
 
 # @bot.event
@@ -266,11 +317,27 @@ def decklist(link):
     
     card_name = soup.find_all('span', class_="el-card-list-info-name-text")
     card_qty = soup.find_all('p', class_="el-card-list-info-count")
-
+    card_cost = soup.select('i[class*="icon-cost is-cost-"]')
+    card_stats = soup.find_all('a', class_="el-icon-search is-small tooltipify")
+    card_atk = [card['data-card-atk'] for card in card_stats]
+    card_def = [card['data-card-life'] for card in card_stats]
+    card_type = [card['data-card-char-type'] for card in card_stats]
+    
+    card_info = []
+    for card in range (0,len(card_type)):
+        if card_type[card] == '1': #follower
+            card_info.append(f'{card_cost[card].text}pp {card_atk[card]}/{card_def[card]}')
+        elif card_type[card] == '3': #amulet
+            card_info.append(f'{card_cost[card].text}pp Amulet')
+        elif card_type[card] == '4': #spell
+            card_info.append(f'{card_cost[card].text}pp Spell')
+    
     card_list = []
     for unique_card in range(0,len(card_name)):
+
         for copies in range(0,int(card_qty[unique_card].text[1])):
-            card_list.append(card_name[unique_card].text)
+            card_list.append(f'{card_name[unique_card].text} ({card_info[unique_card]})')
+            
     
     return card_list
 
