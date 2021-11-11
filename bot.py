@@ -50,12 +50,14 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 intents = discord.Intents.default()
 intents.members = True
-bot = commands.Bot(command_prefix='!faq ', case_insensitive=True, intents=intents)
+bot = commands.Bot(command_prefix='~', case_insensitive=True, intents=intents)
 status = cycle(['with Python', 'MikoHub'])
 
 
 @bot.event
 async def on_ready():
+    activity = discord.Game(name="~help", type=3)
+    await bot.change_presence(status=discord.Status.idle, activity=activity)
     print(f'{bot.user.name} has connected to Discord!')
 
 
@@ -67,32 +69,32 @@ async def change_status():
 ################### Bot Commands  ######################
 
 
-@bot.event
-async def on_member_join(member):
-    await member.create_dm()
-    await member.dm_channel.send(
-        f'Hi {member.name}, welcome to the Discord server! FAQ!'
-    )
+# @bot.event
+# async def on_member_join(member):
+#     await member.create_dm()
+#     await member.dm_channel.send(
+#         f'Hi {member.name}, welcome to the Discord server! FAQ!'
+#     )
 
-@bot.command(name='Fubuki_is_Cat', help='Responds with a random quote from Fubuki')
+@bot.command(name='fbkcat', help='Responds with a random quote from Fubuki')
 async def Fubuki_Cat(ctx):
     Fubuki_quotes = [
         'No no cat! I\'m Fox', 
         'Kitsune jyaa!', 
-        'Nyaajyanee!'
+        'Nyaajyanee yo!'
     ]
     response = random.choice(Fubuki_quotes)
     await ctx.send(response)
     
     
-@bot.command(name='dctdl', help='Returns SV Portal link from deckcode')
+@bot.command(name='dl', help='Returns SV Portal link from deckcode')
 async def svcodetostatic(ctx, deck_code, lang='en', mode='u'):
     
     response, valid_input = createlinkfromcode(deck_code, lang, mode)
     await ctx.send(response)
     
     
-@bot.command(name='dbtdl', help='Turns SV builder links into static links')
+@bot.command(name='db', help='Turns SV builder links into static links')
 async def svbuildtostatic(ctx, link, lang='en', mode='u'):
 
     response, valid_input = createlinkfrombuilder(link, lang, mode)
@@ -134,7 +136,7 @@ async def openingmull(ctx, deck_code, lang='en', mode='u'):
                     msg = await bot.wait_for("message", check=check, timeout=60)
                     opening_hand, valid_mull = mulliganfunction(ctx, msg.content, card_list, opening_hand, valid_mull)
                 except asyncio.TimeoutError:
-                    await ctx.send(f"**{author}**, Time's yp! FAQ! (Mulligan Ended)")
+                    await ctx.send(f"**{author}**, Time's up! (Mulligan Ended)")
                     valid_mull = True
                     time_out = True
                 
@@ -157,7 +159,7 @@ async def openingmull(ctx, deck_code, lang='en', mode='u'):
                         await ctx.send(f"**{author}**, Mulligan Ended")
                         break
                 except asyncio.TimeoutError:
-                    await ctx.send(f"**{author}**, Time's up! FAQ! (Mulligan Ended)")
+                    await ctx.send(f"**{author}**, Time's up! (Mulligan Ended)")
                     break
 
 bot.remove_command('help')            
@@ -168,45 +170,47 @@ async def help(ctx):
     
     embed1 = discord.Embed(color = discord.Color.orange())
     embed1.set_author(name='SV FAQ Bot Commands \n')
-    embed1.add_field(name="__dctdl <deck_code> <language> <mode>__",
-                    value="Transforms deck code into SV Portal link. \n\n \
-                    Inputs: \n \
-                    deck_code: 4 character deck_code \n \
-                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
-                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n",
+    embed1.add_field(name="__dl <code> <lang> <mode>__",
+                    value="Transforms deckcode into SV Portal link. \n\n",
                     inline=False
                     )
         
-    embed1.add_field(name="__dbtdl <builder_link> <language> <mode>__",
-                    value="Transforms deck builder link into SV Portal link. \n\n \
-                    Inputs: \n \
-                    builder_link: Deck builder link from SV Portal \n \
-                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
-                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n",
+    embed1.add_field(name="__dbtdl <builder_link> <lang> <mode>__",
+                    value="Transforms deck builder link into SV Portal link. \n\n",
                     inline=False
                     )
         
-    embed1.add_field(name="__mull <builder_link> <language> <mode>__",
-                    value="Simulates Mulligan with the given deck code. \n\n \
-                    Inputs: \n \
-                    deck_code: 4 character deck_code \n \
+    embed1.add_field(name="__mull <code> <lang> <mode>__",
+                    value="Mulligan Simulator with the given deck code. \n\n",
+                    inline=False
+                    )    
+    
+    embed1.add_field(name="Parameters:",
+                    value="deck_code: 4 character deck_code \n \
                     language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
                     mode: Rotation, Unlimited {'r', 'u' (default)} \n\n \
                     Choose which cards you want to mull based on their positions with...\n \
                     x: Mull card, o: Keep card (e.g. xxo, oxo) \n\n",
                     inline=False
-                    )    
-    
+                    )         
+        
     embed2 = discord.Embed(color = discord.Color.blue())
     embed2.set_author(name='Other Commands (for testing) \n')
-    embed2.add_field(name="__Fubuki_Cat__",
+    embed2.add_field(name="__fbkcat__",
                     value="Responses with a random quote of what Fubuki would say \n \
                           Try out what quote you got hehehe",
                     inline=False
+                    ) 
+
+    embed2.add_field(name="__greet__",
+                    value="Alice greets you",
+                    inline=False
                     )
-    
-    
-        
+
+    embed2.add_field(name="__about__",
+                    value="About Alice Bot",
+                    inline=False
+                    )
     
     await author.send(embed=embed1)
     await author.send(embed=embed2)
@@ -242,8 +246,260 @@ async def on_message3(ctx):
         return
 
     mention = ctx.author.name
-    response = f"hey {mention}, you're great!"
+    response = f"Hi {mention}!"
     await ctx.channel.send(response)
+    
+    
+@bot.command(name='about')
+async def about(ctx):
+    author = ctx.message.author
+    embed1 = discord.Embed(color = discord.Color.orange())
+    embed1.set_author(name='SV FAQ Bot Commands \n')
+    embed1.add_field(name="__dl <code> <lang> <mode>__",
+                    value="Transforms deckcode into SV Portal link. \n\n",
+                    inline=False
+                    )
+    await author.send(embed=embed1)
+   
+ 
+@bot.command(name='arg1')
+async def arg1(ctx, *args):
+    await ctx.send(" ".join(args[:]))
+    # args contains all arguments written after the command i.e !game game i want to play
+    # print(" ".join(args[:])) will print "game i want to play"
+
+   
+@bot.command(name='card')
+async def searchcard(ctx, *args):
+    
+    #author = ctx.message.author
+    
+    
+    #Search Function
+    card_name = " ".join(args[:]) #not 5b
+    add_lang = 'lang=ja'
+       
+    dict_filters = {
+                      'card_name'   : 'card_name' 
+                     ,'card_clan'   : 'clan%5B%5D'
+                     ,'sv_format'   : 'format'
+                     ,'card_set'    : 'card_set%5B%5D'
+                     ,'card_cost'   : 'cost%5B%5D'
+                     ,'card_type'   : 'char_type%5B%5D'
+                     ,'card_rarity' : 'rarity%5B%5D'
+                     ,'language'    : 'lang'
+                   }
+    
+    dict_set_acro =   {
+                      '22' : 'DOC'
+                    , '21' : 'RSC' 
+                    , '20' : 'DOV'
+                    , '19' : 'ETA'
+                    , '18' : 'SOR' 
+                    , '17' : 'FOH'
+                    , '16' : 'WUP'
+                    , '15' : 'UCL'
+                    , '14' : 'VEC'
+                    , '13' : 'ROG'
+                    , '12' : 'STR'
+                    , '11' : 'ALT'
+                    , '10' : 'OOT' 
+                    , '09' : 'BOS'
+                    , '08' : 'DBN'
+                    , '07' : 'CGS'
+                    , '06' : 'SFL' 
+                    , '05' : 'WLD' 
+                    , '04' : 'TOG'
+                    , '03' : 'ROB'
+                    , '02' : 'DRK' 
+                    , '01' : 'CLC'
+                    , '00' : 'Basic'   
+                    }    
+    
+    
+    initial_link = 'https://shadowverse-portal.com/cards?'   
+    added_filters = [] 
+    #Add Card Name                 }
+    add_card_name = dict_filters['card_name'] + '=' + card_name
+    add_card_name = add_card_name.replace(' ', '+')
+    added_filters.append(add_card_name)
+    
+    #Add Lang Name
+    #add_lang = dict_filters['language'] + '=' + language
+    added_filters.append(add_lang) 
+    
+    added_link = '&'.join(added_filters)
+    
+    
+    count = 0
+    increment = 12
+    move_button = ''    
+    while move_button in ['N','B'] or count == 0:
+        
+        if move_button == 'B' and  count % increment  == 0:
+            count = count - increment * 2
+        elif move_button == 'B' and  count % increment  != 0:
+            count = count - count % increment  - increment     
+    
+        card_offset = '&card_offset=' + str(count) 
+            
+        full_link = initial_link + added_link + card_offset
+        source = requests.get(full_link).text
+        soup = bs(source, 'lxml')
+        
+        card_list = soup.find_all('a', class_="el-card-visual-content")
+        
+        
+        if len(card_list) == 0:
+            msg_no_result = 'No result found'
+            await ctx.send(msg_no_result)
+            break
+        
+        if len(card_list) == 1 and count == 0:
+            chosen_card_number = card_list[0]['href'].split('/')[2]        
+            break
+        
+        right_ans = ['N', 'B', 'Q']
+        embed_desc = ''
+        for i in range (1,len(card_list)+1):
+            count += 1
+            card_title = card_list[i-1].find('img')['alt']
+            card_number = card_list[i-1]['href'].split('/')[2]
+            
+            if  card_number[0] == '7':
+                expac_acro = '[alt]'
+            else:
+                expac_acro = f'[{dict_set_acro[card_number[1:3]]}]'
+            #print(str(count) + '.) ' + card_title + ' ' + expac_acro)
+            embed_desc = embed_desc + str(count) + '.) ' + card_title + ' ' + expac_acro + '\n'
+            right_ans.append(str(count))
+        embed_footer = '## - Choose card, N - next page, B - prev page, Q - quit'
+        
+
+        time_out = False
+        while time_out == False:
+            author = ctx.author.name
+            txt_response =  f"**{author}**, did you mean..."
+            await ctx.send(txt_response)
+                           
+            embed_response = discord.Embed(title="Search Results", description = embed_desc, color=0xffb7c5)
+            embed_response.set_footer(text=embed_footer)
+            await ctx.send(embed=embed_response)         
+
+            def check(msg):
+                return msg.author == ctx.author and msg.channel == ctx.channel
+            
+            valid_ans = False
+            while valid_ans == False:
+                try:
+                    msg = await bot.wait_for("message", check=check, timeout=10)
+                    
+                    if msg.content in right_ans:
+                        move_button = msg.content
+                        valid_ans = True
+                        time_out = True
+                        chosen_card_number = False
+
+                except asyncio.TimeoutError:
+                    await ctx.send(f"**{author}**, Time's up!")
+                    valid_ans = True
+                    time_out = True
+                    chosen_card_number = False
+                
+                if valid_ans == False:
+                    await ctx.send(f"**{author}**, Invalid Response")
+        
+        
+        #move_button = input('## - Choose card, N - next page, B - prev page, Q - quit = ')
+
+    
+        if move_button.isnumeric() == True and int(move_button) in range(count - len(card_list) + 1, count + 1):
+            chosen_card_number = card_list[(int(move_button) % increment) - 1]['href'].split('/')[2] 
+        else:
+            chosen_card_number = False
+    
+    #if query == '1':
+    #    chosen_card_number = '110124010'    
+    #else:
+    #    chosen_card_number = '120541010' 
+           
+    if chosen_card_number is not False:
+        chosen_card_link = f'https://shadowverse-portal.com/card/{chosen_card_number}?{add_lang}'
+        source = requests.get(chosen_card_link).text
+        soup = bs(source, 'lxml')
+        
+        card_info   = soup.find('ul', class_="card-info-content")
+        card_text   = card_info.find_all('span')
+        p_text      = card_info.find_all('p')
+        
+        trait     = card_text[1].text.split('\r\n')[1]
+        class_    = card_text[3].text.split('\r\n')[1]
+        rarity    = card_text[5].text.split('\r\n')[1]
+        create    = card_text[7].text.split('\r\n')[1]
+        if chosen_card_number[0] != '7' and chosen_card_number[1:3] != '00':
+            liquefy   = f'{p_text[0].text} / ' + p_text[1].text.split("\n")[2] 
+            card_pack = card_text[11].text.split('\r\n')[1]
+        
+        title = soup.find('h1', class_="card-main-title").text.split('\r\n')[1]
+
+        embed1 = discord.Embed(  title = title
+                                ,url   = chosen_card_link
+                                ,color = discord.Color.orange())
+                
+        flavor = soup.find('p', class_="card-content-description").text    
+        
+        if int(chosen_card_number[-4]) == 1: #follower
+        
+        
+            skill_txt = soup.find_all('p', class_="card-content-skill")        
+            if skill_txt[0].text == '\n':
+                skill_u = 'None'
+            else:
+                skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]        
+    
+            if skill_txt[1].text == '\n':
+                skill_u = 'None'
+            else:
+                skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]       
+                
+            skill_u = clean_text_1(skill_u)
+            skill_e = clean_text_1(skill_e)
+            atk_unevo = soup.find_all('p', class_="el-card-status is-atk")[0].text.split('\r\n')[1]
+            atk_evo   = soup.find_all('p', class_="el-card-status is-atk")[1].text.split('\r\n')[1]
+            life_unevo= soup.find_all('p', class_="el-card-status is-life")[0].text.split('\r\n')[1]
+            life_evo  = soup.find_all('p', class_="el-card-status is-life")[1].text.split('\r\n')[1]
+
+            embed1.add_field(name=f'Unevolved: {atk_unevo}/{life_unevo}',
+                             value=f'{skill_u}',
+                             inline=False
+                             )       
+            embed1.add_field(name=f'Evolved: {atk_evo}/{life_evo}',
+                             value=f'{skill_e}',
+                             inline=False
+                             )
+        else: #non-follower
+            skill = str(soup.find_all('p', class_="card-content-skill")[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]
+            skill = clean_text_1(skill)
+            embed1.add_field(name='Effect:',
+                             value=f'{skill}',
+                             inline=False
+                             )
+
+        #embed1.set_author(name='SV FAQ Bot Commands \n')
+        #embed1.add_field(name="__dl <code> <lang> <mode>__",
+        #            value="Transforms deckcode into SV Portal link. \n\n",
+        #            inline=False
+        #            )
+        #embed1.add_field(name='Effect:',
+        #                 value=f'{skill} \n {flavor}')
+        
+
+        embed1.set_image(url=f"https://svgdb.me/assets/cards/en/C_{chosen_card_number}.png")    #the image itself
+        #embed1.set_footer(text='Yahiko#1354',icon_url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png")   #image in icon_url
+        #embed1.set_thumbnail(url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png") #image itself   
+        
+        #await author.send(embed=embed1)
+        await ctx.send(embed=embed1)
 #################### Functions ######################
 
 
@@ -342,6 +598,15 @@ def decklist(link):
     return card_list
 
 
+    
+@bot.command(name='test1')
+async def test1(ctx):
+    embedVar = discord.Embed(title='title', description='description', color=0xffd800)
+    embedVar.set_image(url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png")    #the image itself
+    embedVar.set_footer(text='footer',icon_url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png")   #image in icon_url
+    embedVar.set_thumbnail(url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png") #image itself    
+    await ctx.send(embed=embedVar)
+        
 # def mulliganfunction(mulligan, card_list, opening_hand):
 #     x = '123'
 #     if mulligan.lower() == 'n':
@@ -365,7 +630,7 @@ def decklist(link):
     
 #     return opening_hand
 
-def mulliganfunction(ctx, mulligan, card_list, opening_hand, valid_mull):
+def mulliganfunction(ctx, mulligan, card_list, opening_hand, valid_mull):   
     answer = 'oooxxx'
     if mulligan.lower() not in set([''.join(p) for p in permutations(answer,3)]):
         pass
@@ -376,6 +641,11 @@ def mulliganfunction(ctx, mulligan, card_list, opening_hand, valid_mull):
         
     return opening_hand, valid_mull
 
-    
+
+def clean_text_1(text):
+    c_text = text.replace('<br/>','\n')
+    #c_text = f'*{c_text}*'  
+    return c_text
+
     
 bot.run(TOKEN)
