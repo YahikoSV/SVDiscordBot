@@ -28,6 +28,8 @@ from threading import Thread
 import urllib.request
 import json
 
+from textblob import TextBlob
+
 app = Flask('')
 
 
@@ -276,9 +278,32 @@ async def searchcard(ctx, *args):
     
     
     #Search Function
-    card_name = " ".join(args[:]) #not 5b
-    add_lang = 'lang=ja'
+    chosen_lang = False
+    add_chosen_lang = None
+    for i in range(0,len(args)):
+        if 'lang=' in args[i] :
+            add_chosen_lang = args[i]
+            args = args[:i] + args[i+1:]
+            chosen_lang = True
        
+        
+    
+    
+    card_name = " ".join(args[:]) #not 5b
+    blob = TextBlob(card_name).detect_language()
+    languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'] 
+    
+    
+    
+    
+    if blob.lower() in languages:
+        d_lang = blob
+    elif blob.lower() == 'fy':
+        d_lang = 'de'
+    else:
+        d_lang = 'en'        
+    add_lang = f'lang={d_lang}'
+    
     dict_filters = {
                       'card_name'   : 'card_name' 
                      ,'card_clan'   : 'clan%5B%5D'
@@ -352,6 +377,7 @@ async def searchcard(ctx, *args):
         
         if len(card_list) == 0:
             msg_no_result = 'No result found'
+            chosen_card_number = False
             await ctx.send(msg_no_result)
             break
         
@@ -424,6 +450,7 @@ async def searchcard(ctx, *args):
     #    chosen_card_number = '120541010' 
            
     if chosen_card_number is not False:
+        add_lang = add_chosen_lang if chosen_lang == True else add_lang
         chosen_card_link = f'https://shadowverse-portal.com/card/{chosen_card_number}?{add_lang}'
         source = requests.get(chosen_card_link).text
         soup = bs(source, 'lxml')
@@ -440,7 +467,10 @@ async def searchcard(ctx, *args):
             liquefy   = f'{p_text[0].text} / ' + p_text[1].text.split("\n")[2] 
             card_pack = card_text[11].text.split('\r\n')[1]
         
-        title = soup.find('h1', class_="card-main-title").text.split('\r\n')[1]
+        if add_lang == 'lang=ja':
+            title = soup.find_all('li', class_="bl-breadcrumb-content-list")[2].text
+        else:
+            title = soup.find('h1', class_="card-main-title").text.split('\r\n')[1]
 
         embed1 = discord.Embed(  title = title
                                 ,url   = chosen_card_link
@@ -455,25 +485,27 @@ async def searchcard(ctx, *args):
             if skill_txt[0].text == '\n':
                 skill_u = 'None'
             else:
-                skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]        
+                skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]        
     
             if skill_txt[1].text == '\n':
                 skill_u = 'None'
             else:
-                skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]       
+                skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]       
                 
             skill_u = clean_text_1(skill_u)
             skill_e = clean_text_1(skill_e)
+            lang_unevo= soup.find_all('p', class_="el-label-card-state l-inline-block")[0].text.split('\r\n')[1]
+            lang_evo  = soup.find_all('p', class_="el-label-card-state l-inline-block")[1].text.split('\r\n')[1]
             atk_unevo = soup.find_all('p', class_="el-card-status is-atk")[0].text.split('\r\n')[1]
             atk_evo   = soup.find_all('p', class_="el-card-status is-atk")[1].text.split('\r\n')[1]
             life_unevo= soup.find_all('p', class_="el-card-status is-life")[0].text.split('\r\n')[1]
             life_evo  = soup.find_all('p', class_="el-card-status is-life")[1].text.split('\r\n')[1]
 
-            embed1.add_field(name=f'Unevolved: {atk_unevo}/{life_unevo}',
+            embed1.add_field(name=f'{lang_unevo}: {atk_unevo}/{life_unevo}',
                              value=f'{skill_u}',
                              inline=False
                              )       
-            embed1.add_field(name=f'Evolved: {atk_evo}/{life_evo}',
+            embed1.add_field(name=f'{lang_evo}: {atk_evo}/{life_evo}',
                              value=f'{skill_e}',
                              inline=False
                              )
@@ -484,6 +516,7 @@ async def searchcard(ctx, *args):
                              value=f'{skill}',
                              inline=False
                              )
+        
 
         #embed1.set_author(name='SV FAQ Bot Commands \n')
         #embed1.add_field(name="__dl <code> <lang> <mode>__",
