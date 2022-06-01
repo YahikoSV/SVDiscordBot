@@ -31,7 +31,7 @@ import json
 #from textblob import TextBlob  #got issues
 #import deep_translator as dt
 import detectlanguage as dlang
-import pyshorteners as sh
+#import pyshorteners as sh
 import pandas as pd
 
 dlang.configuration.api_key = os.getenv('LANG_TOKEN')
