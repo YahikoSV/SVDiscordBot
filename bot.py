@@ -31,7 +31,7 @@ import json
 #from textblob import TextBlob  #got issues
 #import deep_translator as dt
 import detectlanguage as dlang
-#import pyshorteners as sh
+import pyshorteners as sh
 import pandas as pd
 
 dlang.configuration.api_key = os.getenv('LANG_TOKEN')
@@ -293,19 +293,20 @@ async def searchcard(ctx, *args):
     
     #author = ctx.message.author
     
-    
+    languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']      
     #Search Function
     chosen_lang = False
+    error_found = False
     add_chosen_lang = 'lang=en'
     for i in range(0,len(args)):
-        if 'lang=' in args[i] :
+        if 'lang=' in args[i] and args[i].split('=',1)[1] in languages and chosen_lang == False:
             add_chosen_lang = args[i]
             args = args[:i] + args[i+1:]
             chosen_lang = True
-       
-        
-    
-    
+        elif ('lang=' in args[i] and args[i].split('=',1)[1] not in languages):
+            await ctx.send('Invalid Language')
+            error_found = True
+            
     card_name = " ".join(args[:]) #not 5b
 
     
@@ -324,10 +325,9 @@ async def searchcard(ctx, *args):
     
 #    if chosen_lang == True:
 #        add_lang =  add_chosen_lang
-    if len(card_name) >= 3:
+    if len(card_name) >= 3 and error_found == False:
         try:
             result = dlang.detect(card_name)[0]['language']
-            languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']  
             if result.lower() in languages:
                 d_lang = result
             elif result.lower() == 'zh-Hant':
@@ -339,281 +339,284 @@ async def searchcard(ctx, *args):
             add_lang = f'lang={d_lang}'
         except: 
             add_lang = add_chosen_lang  
+            await ctx.send('API limit reached. Please use "lang=<lang>"')
+            error_found = True
     else:
         add_lang = add_chosen_lang        
     
-    dict_filters = {
-                      'card_name'   : 'card_name' 
-                     ,'card_clan'   : 'clan%5B%5D'
-                     ,'sv_format'   : 'format'
-                     ,'card_set'    : 'card_set%5B%5D'
-                     ,'card_cost'   : 'cost%5B%5D'
-                     ,'card_type'   : 'char_type%5B%5D'
-                     ,'card_rarity' : 'rarity%5B%5D'
-                     ,'language'    : 'lang'
-                   }
-    
-    dict_set_acro =   {
-                      '23' : 'EOP'
-                    , '22' : 'DOC'
-                    , '21' : 'RSC' 
-                    , '20' : 'DOV'
-                    , '19' : 'ETA'
-                    , '18' : 'SOR' 
-                    , '17' : 'FOH'
-                    , '16' : 'WUP'
-                    , '15' : 'UCL'
-                    , '14' : 'VEC'
-                    , '13' : 'ROG'
-                    , '12' : 'STR'
-                    , '11' : 'ALT'
-                    , '10' : 'OOT' 
-                    , '09' : 'BOS'
-                    , '08' : 'DBN'
-                    , '07' : 'CGS'
-                    , '06' : 'SFL' 
-                    , '05' : 'WLD' 
-                    , '04' : 'TOG'
-                    , '03' : 'ROB'
-                    , '02' : 'DRK' 
-                    , '01' : 'CLC'
-                    , '00' : 'Basic'   
-                    }    
-    
-    
-    initial_link = 'https://shadowverse-portal.com/cards?'   
-    added_filters = [] 
-    #Add Card Name                 }
-    add_card_name = dict_filters['card_name'] + '=' + card_name
-    add_card_name = add_card_name.replace(' ', '+')
-    added_filters.append(add_card_name)
-    
-    #Add Lang Name
-    #add_lang = dict_filters['language'] + '=' + language
-    added_filters.append(add_lang) 
-    
-    added_link = '&'.join(added_filters)
-    
-    
-    count = 0
-    increment = 12
-    move_button = ''    
-    while move_button in ['N','B'] or count == 0:
+    if error_found == False:
+        dict_filters = {
+                          'card_name'   : 'card_name' 
+                         ,'card_clan'   : 'clan%5B%5D'
+                         ,'sv_format'   : 'format'
+                         ,'card_set'    : 'card_set%5B%5D'
+                         ,'card_cost'   : 'cost%5B%5D'
+                         ,'card_type'   : 'char_type%5B%5D'
+                         ,'card_rarity' : 'rarity%5B%5D'
+                         ,'language'    : 'lang'
+                       }
         
-        if move_button == 'B' and  count % increment  == 0:
-            count = count - increment * 2
-        elif move_button == 'B' and  count % increment  != 0:
-            count = count - count % increment  - increment     
-    
-        card_offset = '&card_offset=' + str(count) 
+        dict_set_acro =   {
+                          '23' : 'EOP'
+                        , '22' : 'DOC'
+                        , '21' : 'RSC' 
+                        , '20' : 'DOV'
+                        , '19' : 'ETA'
+                        , '18' : 'SOR' 
+                        , '17' : 'FOH'
+                        , '16' : 'WUP'
+                        , '15' : 'UCL'
+                        , '14' : 'VEC'
+                        , '13' : 'ROG'
+                        , '12' : 'STR'
+                        , '11' : 'ALT'
+                        , '10' : 'OOT' 
+                        , '09' : 'BOS'
+                        , '08' : 'DBN'
+                        , '07' : 'CGS'
+                        , '06' : 'SFL' 
+                        , '05' : 'WLD' 
+                        , '04' : 'TOG'
+                        , '03' : 'ROB'
+                        , '02' : 'DRK' 
+                        , '01' : 'CLC'
+                        , '00' : 'Basic'   
+                        }    
+        
+        
+        initial_link = 'https://shadowverse-portal.com/cards?'   
+        added_filters = [] 
+        #Add Card Name                 }
+        add_card_name = dict_filters['card_name'] + '=' + card_name
+        add_card_name = add_card_name.replace(' ', '+')
+        added_filters.append(add_card_name)
+        
+        #Add Lang Name
+        #add_lang = dict_filters['language'] + '=' + language
+        added_filters.append(add_lang) 
+        
+        added_link = '&'.join(added_filters)
+        
+        
+        count = 0
+        increment = 12
+        move_button = ''    
+        while move_button in ['N','B'] or count == 0:
             
-        full_link = initial_link + added_link + card_offset
-        source = requests.get(full_link).text
-        soup = bs(source, 'lxml')
+            if move_button == 'B' and  count % increment  == 0:
+                count = count - increment * 2
+            elif move_button == 'B' and  count % increment  != 0:
+                count = count - count % increment  - increment     
         
-        card_list = soup.find_all('a', class_="el-card-visual-content")
-        
-        
-        if len(card_list) == 0:
-            msg_no_result = 'No result found'
-            chosen_card_number = False
-            await ctx.send(msg_no_result)
-            break
-        
-        if len(card_list) == 1 and count == 0:
-            chosen_card_number = card_list[0]['href'].split('/')[2]        
-            break
-        
-        right_ans = ['N', 'B', 'Q']
-        embed_desc = ''
-        for i in range (1,len(card_list)+1):
-            count += 1
-            card_title = card_list[i-1].find('img')['alt']
-            card_number = card_list[i-1]['href'].split('/')[2]
+            card_offset = '&card_offset=' + str(count) 
+                
+            full_link = initial_link + added_link + card_offset
+            source = requests.get(full_link).text
+            soup = bs(source, 'lxml')
             
-            if  card_number[0] == '7':
-                expac_acro = '[alt]'
-            else:
-                expac_acro = f'[{dict_set_acro[card_number[1:3]]}]'
-            #print(str(count) + '.) ' + card_title + ' ' + expac_acro)
-            embed_desc = embed_desc + str(count) + '.) ' + card_title + ' ' + expac_acro + '\n'
-            right_ans.append(str(count))
-        embed_footer = '## - Choose card, N - next page, B - prev page, Q - quit'
-        
-
-        time_out = False
-        while time_out == False:
-            author = ctx.author.name
-            txt_response =  f"**{author}**, did you mean..."
-            await ctx.send(txt_response)
-                           
-            embed_response = discord.Embed(title="Search Results", description = embed_desc, color=0xffb7c5)
-            embed_response.set_footer(text=embed_footer)
-            await ctx.send(embed=embed_response)         
-
-            def check(msg):
-                return msg.author == ctx.author and msg.channel == ctx.channel
+            card_list = soup.find_all('a', class_="el-card-visual-content")
             
-            valid_ans = False
-            while valid_ans == False:
-                try:
-                    msg = await bot.wait_for("message", check=check, timeout=10)
-                    
-                    if msg.content in right_ans:
-                        move_button = msg.content
+            
+            if len(card_list) == 0:
+                msg_no_result = 'No result found'
+                chosen_card_number = False
+                await ctx.send(msg_no_result)
+                break
+            
+            if len(card_list) == 1 and count == 0:
+                chosen_card_number = card_list[0]['href'].split('/')[2]        
+                break
+            
+            right_ans = ['N', 'B', 'Q']
+            embed_desc = ''
+            for i in range (1,len(card_list)+1):
+                count += 1
+                card_title = card_list[i-1].find('img')['alt']
+                card_number = card_list[i-1]['href'].split('/')[2]
+                
+                if  card_number[0] == '7':
+                    expac_acro = '[alt]'
+                else:
+                    expac_acro = f'[{dict_set_acro[card_number[1:3]]}]'
+                #print(str(count) + '.) ' + card_title + ' ' + expac_acro)
+                embed_desc = embed_desc + str(count) + '.) ' + card_title + ' ' + expac_acro + '\n'
+                right_ans.append(str(count))
+            embed_footer = '## - Choose card, N - next page, B - prev page, Q - quit'
+            
+    
+            time_out = False
+            while time_out == False:
+                author = ctx.author.name
+                txt_response =  f"**{author}**, did you mean..."
+                await ctx.send(txt_response)
+                               
+                embed_response = discord.Embed(title="Search Results", description = embed_desc, color=0xffb7c5)
+                embed_response.set_footer(text=embed_footer)
+                await ctx.send(embed=embed_response)         
+    
+                def check(msg):
+                    return msg.author == ctx.author and msg.channel == ctx.channel
+                
+                valid_ans = False
+                while valid_ans == False:
+                    try:
+                        msg = await bot.wait_for("message", check=check, timeout=10)
+                        
+                        if msg.content in right_ans:
+                            move_button = msg.content
+                            valid_ans = True
+                            time_out = True
+                            chosen_card_number = False
+    
+                    except asyncio.TimeoutError:
+                        await ctx.send(f"**{author}**, Time's up!")
                         valid_ans = True
                         time_out = True
                         chosen_card_number = False
-
-                except asyncio.TimeoutError:
-                    await ctx.send(f"**{author}**, Time's up!")
-                    valid_ans = True
-                    time_out = True
-                    chosen_card_number = False
-                
-                if valid_ans == False:
-                    await ctx.send(f"**{author}**, Invalid Response")
-        
-        
-        #move_button = input('## - Choose card, N - next page, B - prev page, Q - quit = ')
-
+                    
+                    if valid_ans == False:
+                        await ctx.send(f"**{author}**, Invalid Response")
+            
+            
+            #move_button = input('## - Choose card, N - next page, B - prev page, Q - quit = ')
     
-        if move_button.isnumeric() == True and int(move_button) in range(count - len(card_list) + 1, count + 1):
-            chosen_card_number = card_list[(int(move_button) % increment) - 1]['href'].split('/')[2] 
-        else:
-            chosen_card_number = False
-    
-    #if query == '1':
-    #    chosen_card_number = '110124010'    
-    #else:
-    #    chosen_card_number = '120541010' 
-           
-    if chosen_card_number is not False:
-        add_lang = add_chosen_lang if chosen_lang == True else add_lang
-        chosen_card_link = f'https://shadowverse-portal.com/card/{chosen_card_number}?{add_lang}'
-        source = requests.get(chosen_card_link).text
-        soup = bs(source, 'lxml')
         
-        card_info   = soup.find('ul', class_="card-info-content")
-        card_text   = card_info.find_all('span')
-        p_text      = card_info.find_all('p')
-        
-        trait     = card_text[1].text.split('\r\n')[1]
-        class_    = card_text[3].text.split('\r\n')[1]
-        rarity    = card_text[5].text.split('\r\n')[1]
-        create    = card_text[7].text.split('\r\n')[1]
-        if chosen_card_number[0] != '7' and chosen_card_number[1:3] != '00':
-            liquefy   = f'{p_text[0].text} / ' + p_text[1].text.split("\n")[2] 
-            card_pack = card_text[11].text.split('\r\n')[1]
-        
-        if add_lang == 'lang=ja':
-            title = soup.find_all('li', class_="bl-breadcrumb-content-list")[2].text
-        else:
-            title = soup.find('h1', class_="card-main-title").text.split('\r\n')[1]
-
-        embed1 = discord.Embed(  title = title
-                                ,url   = chosen_card_link
-                                ,color = discord.Color.orange())
-                
-        flavor = soup.find('p', class_="card-content-description").text    
-        
-        if int(chosen_card_number[-4]) == 1: #follower
-        
-        
-            skill_txt = soup.find_all('p', class_="card-content-skill")        
-            if skill_txt[0].text == '\n':
-                skill_u = 'None'
+            if move_button.isnumeric() == True and int(move_button) in range(count - len(card_list) + 1, count + 1):
+                chosen_card_number = card_list[(int(move_button) % increment) - 1]['href'].split('/')[2] 
             else:
-                skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]        
-    
-            if skill_txt[1].text == '\n':
-                skill_e = 'None'
-            else:
-                skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]       
-                
-            skill_u = clean_text_1(skill_u)
-            skill_e = clean_text_1(skill_e)
-            lang_unevo= soup.find_all('p', class_="el-label-card-state l-inline-block")[0].text.split('\r\n')[1]
-            lang_evo  = soup.find_all('p', class_="el-label-card-state l-inline-block")[1].text.split('\r\n')[1]
-            atk_unevo = soup.find_all('p', class_="el-card-status is-atk")[0].text.split('\r\n')[1]
-            atk_evo   = soup.find_all('p', class_="el-card-status is-atk")[1].text.split('\r\n')[1]
-            life_unevo= soup.find_all('p', class_="el-card-status is-life")[0].text.split('\r\n')[1]
-            life_evo  = soup.find_all('p', class_="el-card-status is-life")[1].text.split('\r\n')[1]
-
-            embed1.add_field(name=f'{lang_unevo}: {atk_unevo}/{life_unevo}',
-                             value=f'{skill_u}',
-                             inline=False
-                             )       
-            embed1.add_field(name=f'{lang_evo}: {atk_evo}/{life_evo}',
-                             value=f'{skill_e}',
-                             inline=False
-                             )
-        else: #non-follower
-            skill = str(soup.find_all('p', class_="card-content-skill")[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]
-            skill = clean_text_1(skill)
-            embed1.add_field(name='Effect:',
-                             value=f'{skill}',
-                             inline=False
-                             )
+                chosen_card_number = False
         
-
-        #embed1.set_author(name='SV FAQ Bot Commands \n')
-        #embed1.add_field(name="__dl <code> <lang> <mode>__",
-        #            value="Transforms deckcode into SV Portal link. \n\n",
-        #            inline=False
-        #            )
-        #embed1.add_field(name='Effect:',
-        #                 value=f'{skill} \n {flavor}')
-        
-
-        embed1.set_image(url=f"https://svgdb.me/assets/cards/en/C_{chosen_card_number}.png")    #the image itself
-        #embed1.set_footer(text='Yahiko#1354',icon_url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png")   #image in icon_url
-        #embed1.set_thumbnail(url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png") #image itself   
-        
-        #await author.send(embed=embed1)
-        await ctx.send(embed=embed1)
-        
-        
-        
-@bot.command(name='t2')
-async def t2deck_stats(ctx, deck_code):
-    list_classes = ['Forest', 'Sword', 'Rune', 'Dragon' ,'Necro' ,'Blood', 'Haven', 'Portal']
-    
-    response, valid_input = createlinkfromcode(deck_code, lang='ja', mode='t')
-    
-    if valid_input == False:
-        await ctx.send(response)
-    else:
-        short = sh.Shortener()
-        #draft_link = short.tinyurl.short(response)
+        #if query == '1':
+        #    chosen_card_number = '110124010'    
+        #else:
+        #    chosen_card_number = '120541010' 
                
-        draft_list = decklist_t2(response)
-        draft_class = list_classes[int(response[38])-1]
-
-        deck_cardList = pd.DataFrame(draft_list, columns=['JP Name'])
-        score_class = pd.read_excel(io='take_2_scores.xlsx', sheet_name=draft_class).drop(labels='Unnamed: 0', axis=1)
-
-        result = pd.merge(deck_cardList, score_class, how='inner', on=['JP Name'])
-        result_mean   = result.mean()
-        result_median = result.median()
+        if chosen_card_number is not False:
+            add_lang = add_chosen_lang if chosen_lang == True else add_lang
+            chosen_card_link = f'https://shadowverse-portal.com/card/{chosen_card_number}?{add_lang}'
+            source = requests.get(chosen_card_link).text
+            soup = bs(source, 'lxml')
+            
+            card_info   = soup.find('ul', class_="card-info-content")
+            card_text   = card_info.find_all('span')
+            p_text      = card_info.find_all('p')
+            
+            trait     = card_text[1].text.split('\r\n')[1]
+            class_    = card_text[3].text.split('\r\n')[1]
+            rarity    = card_text[5].text.split('\r\n')[1]
+            create    = card_text[7].text.split('\r\n')[1]
+            if chosen_card_number[0] != '7' and chosen_card_number[1:3] != '00':
+                liquefy   = f'{p_text[0].text} / ' + p_text[1].text.split("\n")[2] 
+                card_pack = card_text[11].text.split('\r\n')[1]
+            
+            if add_lang == 'lang=ja':
+                title = soup.find_all('li', class_="bl-breadcrumb-content-list")[2].text
+            else:
+                title = soup.find('h1', class_="card-main-title").text.split('\r\n')[1]
     
-        author = ctx.author.name
-        embed1 = discord.Embed(  title = f"{author}'s Draft"
-                                ,url   = response
-                                ,color = discord.Color.orange())      
+            embed1 = discord.Embed(  title = title
+                                    ,url   = chosen_card_link
+                                    ,color = discord.Color.orange())
+                    
+            flavor = soup.find('p', class_="card-content-description").text    
+            
+            if int(chosen_card_number[-4]) == 1: #follower
+            
+            
+                skill_txt = soup.find_all('p', class_="card-content-skill")        
+                if skill_txt[0].text == '\n':
+                    skill_u = 'None'
+                else:
+                    skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]        
         
-        mean_desc = ''
-        mean_desc = mean_desc + f'Class: {draft_class} \n'
+                if skill_txt[1].text == '\n':
+                    skill_e = 'None'
+                else:
+                    skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]       
+                    
+                skill_u = clean_text_1(skill_u)
+                skill_e = clean_text_1(skill_e)
+                lang_unevo= soup.find_all('p', class_="el-label-card-state l-inline-block")[0].text.split('\r\n')[1]
+                lang_evo  = soup.find_all('p', class_="el-label-card-state l-inline-block")[1].text.split('\r\n')[1]
+                atk_unevo = soup.find_all('p', class_="el-card-status is-atk")[0].text.split('\r\n')[1]
+                atk_evo   = soup.find_all('p', class_="el-card-status is-atk")[1].text.split('\r\n')[1]
+                life_unevo= soup.find_all('p', class_="el-card-status is-life")[0].text.split('\r\n')[1]
+                life_evo  = soup.find_all('p', class_="el-card-status is-life")[1].text.split('\r\n')[1]
+    
+                embed1.add_field(name=f'{lang_unevo}: {atk_unevo}/{life_unevo}',
+                                 value=f'{skill_u}',
+                                 inline=False
+                                 )       
+                embed1.add_field(name=f'{lang_evo}: {atk_evo}/{life_evo}',
+                                 value=f'{skill_e}',
+                                 inline=False
+                                 )
+            else: #non-follower
+                skill = str(soup.find_all('p', class_="card-content-skill")[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[1]
+                skill = clean_text_1(skill)
+                embed1.add_field(name='Effect:',
+                                 value=f'{skill}',
+                                 inline=False
+                                 )
+            
+    
+            #embed1.set_author(name='SV FAQ Bot Commands \n')
+            #embed1.add_field(name="__dl <code> <lang> <mode>__",
+            #            value="Transforms deckcode into SV Portal link. \n\n",
+            #            inline=False
+            #            )
+            #embed1.add_field(name='Effect:',
+            #                 value=f'{skill} \n {flavor}')
+            
+    
+            embed1.set_image(url=f"https://svgdb.me/assets/cards/en/C_{chosen_card_number}.png")    #the image itself
+            #embed1.set_footer(text='Yahiko#1354',icon_url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png")   #image in icon_url
+            #embed1.set_thumbnail(url="https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png") #image itself   
+            
+            #await author.send(embed=embed1)
+            await ctx.send(embed=embed1)
         
-        for index_name in result_mean.index:
-        #for index_name in ['Cost', 'Score-GW']:
-            mean_desc = mean_desc + 'Avg ' + index_name + ': ' + '{:.2f}'.format(result_mean[index_name]) + '\n'
         
-        embed1.add_field(name='Stats',
-                         value=mean_desc,
-                         inline=False
-                         )        
-        await ctx.send(embed=embed1)        
+# On Rework       
+# @bot.command(name='t2')
+# async def t2deck_stats(ctx, deck_code):
+#     list_classes = ['Forest', 'Sword', 'Rune', 'Dragon' ,'Necro' ,'Blood', 'Haven', 'Portal']
+    
+#     response, valid_input = createlinkfromcode(deck_code, lang='ja', mode='t')
+    
+#     if valid_input == False:
+#         await ctx.send(response)
+#     else:
+#         short = sh.Shortener()
+#         #draft_link = short.tinyurl.short(response)
+               
+#         draft_list = decklist_t2(response)
+#         draft_class = list_classes[int(response[38])-1]
+
+#         deck_cardList = pd.DataFrame(draft_list, columns=['JP Name'])
+#         score_class = pd.read_excel(io='take_2_scores.xlsx', sheet_name=draft_class).drop(labels='Unnamed: 0', axis=1)
+
+#         result = pd.merge(deck_cardList, score_class, how='inner', on=['JP Name'])
+#         result_mean   = result.mean()
+#         result_median = result.median()
+    
+#         author = ctx.author.name
+#         embed1 = discord.Embed(  title = f"{author}'s Draft"
+#                                 ,url   = response
+#                                 ,color = discord.Color.orange())      
+        
+#         mean_desc = ''
+#         mean_desc = mean_desc + f'Class: {draft_class} \n'
+        
+#         for index_name in result_mean.index:
+#         #for index_name in ['Cost', 'Score-GW']:
+#             mean_desc = mean_desc + 'Avg ' + index_name + ': ' + '{:.2f}'.format(result_mean[index_name]) + '\n'
+        
+#         embed1.add_field(name='Stats',
+#                          value=mean_desc,
+#                          inline=False
+#                          )        
+#         await ctx.send(embed=embed1)        
         
         
         
