@@ -179,44 +179,54 @@ async def help(ctx):
     
     embed1 = discord.Embed(color = discord.Color.orange())
     embed1.set_author(name='SV FAQ Bot Commands \n')
-    embed1.add_field(name="__dl <code> <lang> <mode>__",
+    embed1.add_field(name="__~dl <code> <lang> <mode>__",
                     value="Transforms deckcode into SV Portal link. \n\n",
                     inline=False
                     )
         
-    embed1.add_field(name="__dbtdl <builder_link> <lang> <mode>__",
+    embed1.add_field(name="__~dbtdl <builder_link> <lang> <mode>__",
                     value="Transforms deck builder link into SV Portal link. \n\n",
                     inline=False
                     )
         
-    embed1.add_field(name="__mull <code> <lang> <mode>__",
+    embed1.add_field(name="__~mull <code> <lang> <mode>__",
                     value="Mulligan Simulator with the given deck code. \n\n",
                     inline=False
                     )    
     
-    embed1.add_field(name="Parameters:",
-                    value="deck_code: 4 character deck_code \n \
-                    language: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
-                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n \
-                    Choose which cards you want to mull based on their positions with...\n \
-                    x: Mull card, o: Keep card (e.g. xxo, oxo) \n\n",
+    embed1.add_field(name="__~card <name> lang=<lang>__",
+                    value="Search for any specifc Shadowverse card. (Includes Promo Cards) \n \
+                           If multiple entries appears on search, enter the respective number of the card. \n\n",
                     inline=False
-                    )         
+                    )    
+    
+    embed1.add_field(name="Parameters:",
+                    value="code: 4 character deck_code \n \
+                    lang: Options: {'en'(default), 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'}  \n \
+                    mode: Rotation, Unlimited {'r', 'u' (default)} \n\n ",
+                    inline=False
+                    )  
+        
+    embed1.add_field(name="Mulligan Instructons:",
+                    value="Choose which cards you want to mull based on their positions with...\n \
+                    x: Mull card, o: Keep card (e.g. xxo, oxo) \n\n ",
+                    inline=False
+                    )      
         
     embed2 = discord.Embed(color = discord.Color.blue())
     embed2.set_author(name='Other Commands (for testing) \n')
-    embed2.add_field(name="__fbkcat__",
+    embed2.add_field(name="__~fbkcat__",
                     value="Responses with a random quote of what Fubuki would say \n \
-                          Try out what quote you got hehehe",
+                          Try out what quote you got",
                     inline=False
                     ) 
 
-    embed2.add_field(name="__greet__",
+    embed2.add_field(name="__~greet__",
                     value="Alice greets you",
                     inline=False
                     )
 
-    embed2.add_field(name="__about__",
+    embed2.add_field(name="__~about__",
                     value="About Alice Bot",
                     inline=False
                     )
@@ -263,9 +273,10 @@ async def on_message3(ctx):
 async def about(ctx):
     author = ctx.message.author
     embed1 = discord.Embed(color = discord.Color.orange())
-    embed1.set_author(name='SV FAQ Bot Commands \n')
-    embed1.add_field(name="__dl <code> <lang> <mode>__",
-                    value="Transforms deckcode into SV Portal link. \n\n",
+    embed1.set_author(name='About Alice Bot \n')
+    embed1.add_field(name="About",
+                     value="Is it possible to make a community driven Shadowverse Discord Bot? \n \
+                            If you want to help out, you may contact Yahiko#1354",
                     inline=False
                     )
     await author.send(embed=embed1)
