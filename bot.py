@@ -55,7 +55,7 @@ def keep_alive():
 
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
-
+dlang.configuration.api_key = os.getenv('LANG_TOKEN')
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='~', case_insensitive=True, intents=intents)
