@@ -34,8 +34,7 @@ import detectlanguage as dlang
 import pyshorteners as sh
 import pandas as pd
 
-dlang.configuration.api_key = 'ca91cd9ad76ce61ebde42e41d801b652'
-result = dlang.detect("Buenos dias señor")
+dlang.configuration.api_key = os.getenv('LANG_TOKEN')
 
 app = Flask('')
 
