@@ -19,7 +19,7 @@ import random as rand
 from bs4 import BeautifulSoup as bs
 from itertools import permutations
 
-import nest_asyncio
+#import nest_asyncio
 import asyncio
 #nest_asyncio.apply()
 
@@ -29,7 +29,7 @@ import urllib.request
 import json
 
 #from textblob import TextBlob  #got issues
-import deep_translator as dt
+#import deep_translator as dt
 import detectlanguage as dlang
 import pyshorteners as sh
 import pandas as pd
