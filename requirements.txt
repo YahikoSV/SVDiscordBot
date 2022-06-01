@@ -7,3 +7,5 @@ bs4
 asyncio
 lxml
 detectlanguage
+pyshorteners
+pandas
