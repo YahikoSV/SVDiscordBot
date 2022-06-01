@@ -21,14 +21,21 @@ from itertools import permutations
 
 import nest_asyncio
 import asyncio
-nest_asyncio.apply()
+#nest_asyncio.apply()
 
 from flask import Flask
 from threading import Thread
 import urllib.request
 import json
 
-from textblob import TextBlob
+#from textblob import TextBlob  #got issues
+import deep_translator as dt
+import detectlanguage as dlang
+import pyshorteners as sh
+import pandas as pd
+
+dlang.configuration.api_key = 'ca91cd9ad76ce61ebde42e41d801b652'
+result = dlang.detect("Buenos dias señor")
 
 app = Flask('')
 
@@ -48,7 +55,7 @@ def keep_alive():
 
 
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN = os.getenv('TOKEN')
 
 intents = discord.Intents.default()
 intents.members = True
@@ -279,7 +286,7 @@ async def searchcard(ctx, *args):
     
     #Search Function
     chosen_lang = False
-    add_chosen_lang = None
+    add_chosen_lang = 'lang=en'
     for i in range(0,len(args)):
         if 'lang=' in args[i] :
             add_chosen_lang = args[i]
@@ -290,19 +297,40 @@ async def searchcard(ctx, *args):
     
     
     card_name = " ".join(args[:]) #not 5b
-    blob = TextBlob(card_name).detect_language()
-    languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es'] 
+
     
+    # if len(card_name) >= 3:
+    #     blob = TextBlob(card_name).detect_language()
+    #     languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']    
+    #     if blob.lower() in languages:
+    #         d_lang = blob
+    #     elif blob.lower() == 'fy':
+    #         d_lang = 'de'
+    #     else:
+    #         d_lang = 'en'        
+    #     add_lang = f'lang={d_lang}'
+    # else:
+    #     add_lang = add_chosen_lang
     
-    
-    
-    if blob.lower() in languages:
-        d_lang = blob
-    elif blob.lower() == 'fy':
-        d_lang = 'de'
+#    if chosen_lang == True:
+#        add_lang =  add_chosen_lang
+    if len(card_name) >= 3:
+        try:
+            result = dlang.detect(card_name)[0]['language']
+            languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']  
+            if result.lower() in languages:
+                d_lang = result
+            elif result.lower() == 'zh-Hant':
+                d_lang = 'zh-tw'
+            elif result.lower() == 'fy':
+                d_lang = 'de'
+            else: 
+                d_lang = 'en'
+            add_lang = f'lang={d_lang}'
+        except: 
+            add_lang = add_chosen_lang  
     else:
-        d_lang = 'en'        
-    add_lang = f'lang={d_lang}'
+        add_lang = add_chosen_lang        
     
     dict_filters = {
                       'card_name'   : 'card_name' 
@@ -316,7 +344,8 @@ async def searchcard(ctx, *args):
                    }
     
     dict_set_acro =   {
-                      '22' : 'DOC'
+                      '23' : 'EOP'
+                    , '22' : 'DOC'
                     , '21' : 'RSC' 
                     , '20' : 'DOV'
                     , '19' : 'ETA'
@@ -488,7 +517,7 @@ async def searchcard(ctx, *args):
                 skill_u = str(skill_txt[0]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]        
     
             if skill_txt[1].text == '\n':
-                skill_u = 'None'
+                skill_e = 'None'
             else:
                 skill_e = str(skill_txt[1]).split('>',1)[1].split('</p>',1)[0].split('\r\n')[-2]       
                 
@@ -533,11 +562,57 @@ async def searchcard(ctx, *args):
         
         #await author.send(embed=embed1)
         await ctx.send(embed=embed1)
+        
+        
+        
+@bot.command(name='t2')
+async def t2deck_stats(ctx, deck_code):
+    list_classes = ['Forest', 'Sword', 'Rune', 'Dragon' ,'Necro' ,'Blood', 'Haven', 'Portal']
+    
+    response, valid_input = createlinkfromcode(deck_code, lang='ja', mode='t')
+    
+    if valid_input == False:
+        await ctx.send(response)
+    else:
+        short = sh.Shortener()
+        #draft_link = short.tinyurl.short(response)
+               
+        draft_list = decklist_t2(response)
+        draft_class = list_classes[int(response[38])-1]
+
+        deck_cardList = pd.DataFrame(draft_list, columns=['JP Name'])
+        score_class = pd.read_excel(io='take_2_scores.xlsx', sheet_name=draft_class).drop(labels='Unnamed: 0', axis=1)
+
+        result = pd.merge(deck_cardList, score_class, how='inner', on=['JP Name'])
+        result_mean   = result.mean()
+        result_median = result.median()
+    
+        author = ctx.author.name
+        embed1 = discord.Embed(  title = f"{author}'s Draft"
+                                ,url   = response
+                                ,color = discord.Color.orange())      
+        
+        mean_desc = ''
+        mean_desc = mean_desc + f'Class: {draft_class} \n'
+        
+        for index_name in result_mean.index:
+        #for index_name in ['Cost', 'Score-GW']:
+            mean_desc = mean_desc + 'Avg ' + index_name + ': ' + '{:.2f}'.format(result_mean[index_name]) + '\n'
+        
+        embed1.add_field(name='Stats',
+                         value=mean_desc,
+                         inline=False
+                         )        
+        await ctx.send(embed=embed1)        
+        
+        
+        
+        
 #################### Functions ######################
 
 
 def createlinkfrombuilder(deck_builder_url, lang, mode, valid_input = False):
-    sv_format = {'R':'3', 'U':'1'}
+    sv_format = {'R':'3', 'U':'1','T':'2'}
     languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']            
 
     if 'shadowverse-portal.com/deckbuilder/create/' not in deck_builder_url:
@@ -548,7 +623,7 @@ def createlinkfrombuilder(deck_builder_url, lang, mode, valid_input = False):
         response = "Invalid language"
     else:      
         deck_hash = deck_builder_url.split("hash=")[1].split("&")[0]
-        deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
+        #deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
         deck_list_url = "https://shadowverse-portal.com/deck/" + str(deck_hash) + "?lang=" + str(lang)
         #response = discord.Embed(title="Sample Embed", url=deck_list_url)
         response = deck_list_url
@@ -557,7 +632,7 @@ def createlinkfrombuilder(deck_builder_url, lang, mode, valid_input = False):
 
 
 def createlinkfromcode(deck_code, lang, mode, valid_input = False):
-    sv_format = {'R':'3', 'U':'1'}
+    sv_format = {'R':'3', 'U':'1','T':'2'}
     languages = ['en', 'ja', 'ko', 'zh-tw' , 'fr', 'it', 'de', 'es']
     
     deck_code_url = "https://shadowverse-portal.com/api/v1/deck/import?format=json&deck_code=" + deck_code + "&lang=en"
@@ -573,7 +648,7 @@ def createlinkfromcode(deck_code, lang, mode, valid_input = False):
         response = "Invalid language"
     else:      
         deck_hash = deck_json['data']['hash']
-        deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
+        #deck_hash = deck_hash.replace("1",str(sv_format[mode.upper()]),1)
         
         deck_list_url = "https://shadowverse-portal.com/deck/" + str(deck_hash) + "?lang=" + str(lang)
         response = deck_list_url
@@ -626,10 +701,22 @@ def decklist(link):
 
         for copies in range(0,int(card_qty[unique_card].text[1])):
             card_list.append(f'{card_name[unique_card].text} ({card_info[unique_card]})')
-            
-    
     return card_list
 
+
+def decklist_t2(link):
+    source = requests.get(link).text
+    soup = bs(source, 'lxml')
+    
+    card_name = soup.find_all('span', class_="el-card-list-info-name-text")
+    card_qty = soup.find_all('p', class_="el-card-list-info-count")
+     
+    card_list = []
+    for unique_card in range(0,len(card_name)):
+
+        for copies in range(0,int(card_qty[unique_card].text[1])):
+            card_list.append(f'{card_name[unique_card].text}')           
+    return card_list
 
     
 @bot.command(name='test1')
@@ -677,6 +764,7 @@ def mulliganfunction(ctx, mulligan, card_list, opening_hand, valid_mull):
 
 def clean_text_1(text):
     c_text = text.replace('<br/>','\n')
+
     #c_text = f'*{c_text}*'  
     return c_text
 
