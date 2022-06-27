@@ -357,7 +357,8 @@ async def searchcard(ctx, *args):
                        }
         
         dict_set_acro =   {
-                          '23' : 'EOP'
+                          '24' : 'RGW'  
+                        , '23' : 'EOP'
                         , '22' : 'DOC'
                         , '21' : 'RSC' 
                         , '20' : 'DOV'
