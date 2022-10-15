@@ -89,10 +89,23 @@ async def hello(interaction: discord.Interaction):
 
 @bot.tree.command(name='decklist', description='Returns SV portal link from deckcode')
 @app_commands.describe(deck_code = '4 Character Code')
-async def svcodetostatic2(ctx: discord.Interaction, deck_code: str):
+@app_commands.describe(lang = 'Language desired (en, ja, ko, zh-tw, fr, it, de, es)')
+@app_commands.describe(mode = 'Format Desired (U - unil, R = rotate, T= take 2)')
+async def svcodetostatic2(ctx: discord.Interaction, deck_code:str, lang:str ='en', mode:str='u'):
     
     response, valid_input = createlinkfromcode(deck_code, lang='en', mode='u')
     await ctx.response.send_message(response)
+
+
+@bot.tree.command(name='deckcode', description='Returns deckcode from SV portal link')   
+@app_commands.describe(deck_link = 'SV Portal deck link')
+async def svlinktostatic2(ctx: discord.Interaction, deck_link:str):
+    
+    response, valid_input = createcodefromlink(deck_link)
+    await ctx.response.send_message(response)
+
+
+
 
 @bot.command(name='fbkcat', help='Responds with a random quote from Fubuki')
 async def Fubuki_Cat(ctx):
@@ -229,6 +242,18 @@ async def help(ctx):
                     x: Mull card, o: Keep card (e.g. xxo, oxo) \n\n ",
                     inline=False
                     )      
+        
+    embed1.add_field(name="New trial (Slash Commands)):",
+                    value="Try /decklist or /deckcode \n\n ",
+                    inline=False
+                    ) 
+
+    embed1.add_field(name="Possible Issues when seaching Cards:",
+                    value="1.) Result not found but it exists: Either... \n \
+                           a.) Script not yet updated for the new expansion (patch soon) \n \
+                           b.) Language API identifies phrase in a different language (don't use the whole name or use lang= \n\n",
+                    inline=False
+                    )             
         
     embed2 = discord.Embed(color = discord.Color.blue())
     embed2.set_author(name='Other Commands (for testing) \n')
