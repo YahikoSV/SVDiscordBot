@@ -93,12 +93,20 @@ async def Fubuki_Cat(ctx):
     ]
     response = random.choice(Fubuki_quotes)
     await ctx.send(response)
+
+        
     
-    
-@bot.command(name='dl', help='Returns SV Portal link from deckcode')
+@bot.command(name='dl', help='Returns SV portal link from deckcode')
 async def svcodetostatic(ctx, deck_code, lang='en', mode='u'):
     
     response, valid_input = createlinkfromcode(deck_code, lang, mode)
+    await ctx.send(response)
+    
+    
+@bot.command(name='dc', help='Returns deckcode from SV portal link')   
+async def svlinktostatic(ctx, deck_link):
+    
+    response, valid_input = createcodefromlink(deck_link)
     await ctx.send(response)
     
     
@@ -671,6 +679,25 @@ def createlinkfromcode(deck_code, lang, mode, valid_input = False):
         valid_input = True
     return response, valid_input 
 
+
+def createcodefromlink(deck_link, valid_input = False):   
+    if "?" in deck_link:
+        deck_hash = deck_link.split("?")[0]
+    else:
+        deck_hash = deck_link        
+    if "/" in deck_link:
+        deck_hash = deck_hash.split("/")[-1]
+     
+    #Collaboration with boron    
+    generate_code_url = "https://shadowverse-master.blade-wing.workers.dev/generate/" + str(deck_hash)
+    source = requests.get(generate_code_url).text
+    if "code" in source:
+        response = source.split('"')[3]
+        valid_input = True
+    else:
+        response = "Invalid deck link"
+    
+    return response, valid_input 
 
 def mullcards(card_list, opening_hand, card_to_mull):
     mull_count = len(card_to_mull)
