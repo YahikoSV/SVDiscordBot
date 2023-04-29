@@ -59,7 +59,7 @@ status = cycle(['with Python', 'MikoHub'])
 @bot.event
 async def on_ready():
     activity = discord.Game(name="~help", type=3)
-    await bot.change_presence(status=discord.Status.idle, activity=activity)
+    await bot.change_presence(status=discord.Status.online, activity=activity)
     print(f'{bot.user.name} has connected to Discord!')
     try:
         synced = await bot.tree.sync()
@@ -371,15 +371,22 @@ async def searchcard(ctx, *args):
     if len(card_name) >= 3 and error_found == False:
         try:
             result = dlang.detect(card_name)[0]['language']
-            if result.lower() in languages:
-                d_lang = result
-            elif result.lower() == 'zh-Hant':
-                d_lang = 'zh-tw'
-            elif result.lower() == 'fy':
-                d_lang = 'de'
-            else: 
+            #if result.lower() in languages:
+            #    d_lang = result
+            #elif result.lower() == 'zh-Hant':
+            #    d_lang = 'zh-tw'
+            #elif result.lower() == 'fy':
+            #    d_lang = 'de'
+            #else: 
+            #    d_lang = 'en'
+            #add_lang = f'lang={d_lang}'
+            if result.lower() == 'en':
                 d_lang = 'en'
-            add_lang = f'lang={d_lang}'
+            elif result.lower() == 'ja':
+                d_lang = 'ja'     
+            else:
+                d_lang = 'en'
+            add_lang = f'lang={d_lang}'    
         except: 
             add_lang = add_chosen_lang  
             await ctx.send('API limit reached. Please use "lang=<lang>"')
@@ -400,7 +407,9 @@ async def searchcard(ctx, *args):
                        }
         
         dict_set_acro =   {
-                          '26' : 'CDB'
+                          '28' : 'AOA'
+                        , '27' : 'EAA' 
+                        , '26' : 'CDB'
                         , '25' : 'RGW'  
                         , '24' : 'EOP'
                         , '23' : 'OOS'
