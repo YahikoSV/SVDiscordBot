@@ -407,7 +407,8 @@ async def searchcard(ctx, *args):
                        }
         
         dict_set_acro =   {
-                          '28' : 'AOA'
+                          '29' : 'HOR'
+                        , '28' : 'AOA'
                         , '27' : 'EAA' 
                         , '26' : 'CDB'
                         , '25' : 'RGW'  
